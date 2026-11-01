@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" rx="72" fill="#0B1F33"/>
+  <!-- cash-balance line that dips toward a buffer, then recovers -->
+  <line x1="70" y1="250" x2="330" y2="250" stroke="#E8B04B" stroke-width="6" stroke-dasharray="14 12" stroke-linecap="round"/>
+  <polyline points="70,150 125,165 170,200 215,238 260,190 330,120" fill="none" stroke="#3FD3A1" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="215" cy="238" r="16" fill="#0B1F33" stroke="#3FD3A1" stroke-width="10"/>
+  <text x="200" y="330" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" letter-spacing="2">TREASURY</text>
+</svg>

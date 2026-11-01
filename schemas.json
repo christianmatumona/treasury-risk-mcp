@@ -1,0 +1,876 @@
+{
+  "generated_from": "openapi 1.7.0",
+  "tools": [
+    {
+      "name": "treasury_risk",
+      "route": "/treasury-risk",
+      "price_usd": "0.10",
+      "summary": "Deterministic treasury/portfolio risk analysis",
+      "description": "Computes volatility, Sharpe/Sortino/Calmar, VaR/Expected Shortfall, multi-dimensional concentration, per-asset risk contribution, and correlated multi-factor stress scenarios (shocks propagate to unshocked symbols via covariance-based beta mapping, not treated as zero) from historical per-period returns and portfolio weights. Requires USDC payment via the x402 protocol (Circle Gateway) — see the 402 response below for the payment flow. Also available at the legacy path POST /analyze (identical behavior).",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "returns",
+          "weights"
+        ],
+        "properties": {
+          "returns": {
+            "type": "object",
+            "description": "Per-period historical return series by symbol. All series must be the same length (≥2 observations).",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "weights": {
+            "type": "object",
+            "description": "Portfolio weights by symbol. Must cover exactly the same symbols as `returns` and sum to 1.",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "riskFreeRate": {
+            "type": "number",
+            "description": "Annualized risk-free rate, e.g. 0.04 for 4%.",
+            "default": 0
+          },
+          "periodsPerYear": {
+            "type": "number",
+            "description": "Periods per year in the return series (252 for daily equities, 365 for daily crypto).",
+            "default": 252
+          },
+          "confidenceLevels": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Confidence levels for VaR/Expected Shortfall. Supported: 0.9, 0.95, 0.975, 0.99, 0.995.",
+            "default": [
+              0.95,
+              0.99
+            ]
+          },
+          "baseCurrency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "minimumAcceptableReturn": {
+            "type": "number",
+            "description": "Per-period MAR used for downside deviation / Sortino ratio.",
+            "default": 0
+          },
+          "benchmarkReturns": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Optional per-period benchmark series (same length as each `returns` series) to compute beta and correlation."
+          },
+          "currencyExposure": {
+            "type": "object",
+            "description": "Optional weight distribution by currency, for concentration analysis.",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "geographyExposure": {
+            "type": "object",
+            "description": "Optional weight distribution by geography, for concentration analysis.",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "sectorExposure": {
+            "type": "object",
+            "description": "Optional weight distribution by sector, for concentration analysis.",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "stressScenarios": {
+            "type": "array",
+            "description": "Optional stress scenarios. Shocks on the listed symbols propagate to unshocked symbols via covariance-based beta mapping (correlated impact), alongside the direct-only impact.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "shocks": {
+                  "type": "object",
+                  "description": "Fractional shock per symbol, e.g. -0.3 for a 30% drop.",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "baseCurrency": "USD",
+        "returns": {
+          "USDCASH": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "EURCASH": [
+            0.0322,
+            0.0186,
+            -0.0166,
+            -0.0109,
+            0.0172,
+            -0.0254,
+            0.0003,
+            -0.0122,
+            -0.008,
+            0.0095,
+            0.0107,
+            -0.0056,
+            -0.0353,
+            -0.0401,
+            0.001,
+            -0.0176,
+            -0.0535,
+            -0.0263,
+            0.0014,
+            0.0294,
+            -0.0106,
+            0.0028,
+            0.0199,
+            0.0112,
+            0.0097,
+            0.0084,
+            -0.0262,
+            -0.0016,
+            0.0029,
+            0.032,
+            -0.0095,
+            -0.0194,
+            0.008,
+            0.0141,
+            0.056,
+            0.0251
+          ],
+          "GBPCASH": [
+            0.0321,
+            -0.0108,
+            -0.0218,
+            -0.0401,
+            0.0243,
+            -0.0144,
+            -0.0006,
+            -0.012,
+            -0.0218,
+            0.016,
+            0.0238,
+            -0.0233,
+            -0.0113,
+            -0.0051,
+            0.0211,
+            -0.0173,
+            -0.0332,
+            -0.0291,
+            0.0412,
+            -0.0067,
+            0.0319,
+            0.0095,
+            0.0217,
+            0.0371,
+            -0.0059,
+            -0.0362,
+            0.0034,
+            0.0031,
+            0.0034,
+            0.0079,
+            0.0037,
+            0.0111,
+            -0.0047,
+            -0.014,
+            -0.0048,
+            0.0047
+          ],
+          "USDC": [
+            0.001,
+            0.0001,
+            -0.0002,
+            0.0002,
+            0.0001,
+            0.0002,
+            -0.0001,
+            0,
+            -0.0003,
+            -0.0001,
+            0.0007,
+            0.0007,
+            -0.0001,
+            0.0003,
+            -0.0004,
+            -0.0004,
+            0.0003,
+            -0.0007,
+            -0.0003,
+            0.0002,
+            -0.0007,
+            0,
+            -0.0002,
+            -0.0003,
+            0.0001,
+            -0.0001,
+            0.0005,
+            -0.0008,
+            0.0005,
+            -0.0003,
+            0.0002,
+            -0.0005,
+            -0.0004,
+            -0.0004,
+            -0.0003,
+            -0.0001
+          ],
+          "SUKUK": [
+            -0.0052,
+            0.0038,
+            0.0132,
+            0.015,
+            0.0009,
+            0.015,
+            0.0024,
+            -0.0044,
+            -0.0009,
+            -0.0006,
+            0.0014,
+            0.001,
+            -0.0002,
+            0,
+            0.0129,
+            0.0017,
+            0.0096,
+            0.0013,
+            0.0167,
+            0.0007,
+            0.0033,
+            0.0057,
+            -0.0009,
+            0.0004,
+            -0.0088,
+            -0.0094,
+            0.0067,
+            0.0081,
+            0.0105,
+            -0.0008,
+            0.0093,
+            -0.0054,
+            -0.0037,
+            0.0064,
+            -0.0019,
+            0.0055
+          ]
+        },
+        "weights": {
+          "USDCASH": 0.45,
+          "EURCASH": 0.25,
+          "GBPCASH": 0.1,
+          "USDC": 0.12,
+          "SUKUK": 0.08
+        },
+        "riskFreeRate": 0,
+        "periodsPerYear": 12,
+        "confidenceLevels": [
+          0.95,
+          0.99
+        ],
+        "currencyExposure": {
+          "USD": 0.65,
+          "EUR": 0.25,
+          "GBP": 0.1
+        },
+        "stressScenarios": [
+          {
+            "name": "EUR -10% vs USD",
+            "shocks": {
+              "EURCASH": -0.1
+            }
+          },
+          {
+            "name": "USD strength: EUR -8%, GBP -8%",
+            "shocks": {
+              "EURCASH": -0.08,
+              "GBPCASH": -0.08
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "fx_exposure",
+      "route": "/fx-exposure",
+      "price_usd": "0.25",
+      "summary": "Deterministic FX exposure analysis",
+      "description": "Computes gross/net exposure, currency concentration, natural hedges, stress scenarios, and hedge priority from a list of receivable/ payable/cash positions by currency. Requires USDC payment via the x402 protocol (Circle Gateway) — see the 402 response for the payment flow.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "positions",
+          "fxRates"
+        ],
+        "properties": {
+          "baseCurrency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "currency",
+                "type",
+                "amount"
+              ],
+              "properties": {
+                "currency": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "receivable",
+                    "payable",
+                    "cash"
+                  ]
+                },
+                "amount": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "hedged": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          },
+          "fxRates": {
+            "type": "object",
+            "description": "Units of baseCurrency per 1 unit of each foreign currency present in `positions`.",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "stressShockPct": {
+            "type": "number",
+            "description": "Fractional depreciation applied to each foreign currency in the stress scenario.",
+            "default": 0.1
+          },
+          "totalTreasuryValueBase": {
+            "type": "number",
+            "description": "Optional total treasury value (in baseCurrency) used to normalize the risk score. Defaults to total gross FX exposure if omitted."
+          }
+        }
+      },
+      "example": {
+        "baseCurrency": "USD",
+        "positions": [
+          {
+            "currency": "EUR",
+            "type": "receivable",
+            "amount": 500000,
+            "hedged": false
+          },
+          {
+            "currency": "GBP",
+            "type": "payable",
+            "amount": 200000,
+            "hedged": false
+          }
+        ],
+        "fxRates": {
+          "EUR": 1.08,
+          "GBP": 1.27
+        },
+        "stressShockPct": 0.1
+      }
+    },
+    {
+      "name": "liquidity_forecast",
+      "route": "/liquidity",
+      "price_usd": "0.50",
+      "summary": "Deterministic liquidity forecast",
+      "description": "Projects daily cash balance from opening cash and a list of scheduled cash flow events over a forecast horizon, flags minimum-buffer breaches, and classifies liquidity status. Optionally also computes standard working-capital ratios (DSO/DPO/DIO/cash conversion cycle) from a supplied balance snapshot. Requires USDC payment via the x402 protocol (Circle Gateway) — see the 402 response for the payment flow.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "openingCash",
+          "horizonDays",
+          "minimumCashBuffer"
+        ],
+        "properties": {
+          "baseCurrency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "openingCash": {
+            "type": "number"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Defaults to today (UTC) if omitted."
+          },
+          "horizonDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "minimumCashBuffer": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cashFlows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "date",
+                "amount"
+              ],
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "amount": {
+                  "type": "number",
+                  "description": "Signed amount; positive is an inflow, negative is an outflow."
+                },
+                "category": {
+                  "type": "string",
+                  "maxLength": 50
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              }
+            },
+            "description": "Each date must be on or after startDate; dates beyond the horizon are excluded from the projection (and flagged in warnings/data_quality) rather than rejected."
+          },
+          "workingCapital": {
+            "type": "object",
+            "description": "Optional standard accounting ratios (DSO/DPO/DIO/cash conversion cycle) computed from a balance snapshot and period flow — independent of the cashFlows-based daily projection above.",
+            "required": [
+              "accountsReceivable",
+              "accountsPayable",
+              "periodCreditSales",
+              "periodCOGS",
+              "periodDays"
+            ],
+            "properties": {
+              "accountsReceivable": {
+                "type": "number",
+                "minimum": 0,
+                "description": "AR balance snapshot, in baseCurrency."
+              },
+              "accountsPayable": {
+                "type": "number",
+                "minimum": 0,
+                "description": "AP balance snapshot, in baseCurrency."
+              },
+              "periodCreditSales": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Credit sales over the reference period, in baseCurrency."
+              },
+              "periodCOGS": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Cost of goods sold / purchases over the reference period, in baseCurrency."
+              },
+              "periodDays": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 3650,
+                "description": "Length of the reference period in days (e.g. 365 for a trailing year, 90 for a quarter)."
+              },
+              "inventory": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Optional inventory balance snapshot — enables days_inventory_outstanding and a full cash conversion cycle."
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "openingCash": 800000,
+        "startDate": "2026-09-14",
+        "horizonDays": 30,
+        "minimumCashBuffer": 500000,
+        "cashFlows": [
+          {
+            "date": "2026-09-27",
+            "amount": -500000,
+            "category": "payable",
+            "description": "Supplier invoice"
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasury_decision",
+      "route": "/treasury-decision",
+      "price_usd": "2.00",
+      "summary": "Composite payment decision (\"can we safely execute this payment today?\")",
+      "description": "Orchestrates the liquidity, FX exposure, and (optionally) treasury risk capabilities to produce a PAY/REVIEW/DO_NOT_PAY decision with a confidence score. The payment is injected as an outflow into the liquidity forecast and as a new unhedged payable position in the FX exposure analysis. Requires USDC payment via the x402 protocol (Circle Gateway) — see the 402 response for the payment flow. This is decision-support output, not an instruction to execute any transaction.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "payment",
+          "liquidity",
+          "fxExposure"
+        ],
+        "properties": {
+          "baseCurrency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "payment": {
+            "type": "object",
+            "required": [
+              "amount",
+              "currency"
+            ],
+            "properties": {
+              "amount": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "currency": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string",
+                "format": "date",
+                "description": "Defaults to liquidity.startDate (or today) if omitted."
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          },
+          "liquidity": {
+            "description": "Same shape as LiquidityRequest, minus baseCurrency (the payment is auto-injected as an additional cash flow outflow).",
+            "type": "object",
+            "required": [
+              "openingCash",
+              "horizonDays",
+              "minimumCashBuffer"
+            ],
+            "properties": {
+              "openingCash": {
+                "type": "number"
+              },
+              "startDate": {
+                "type": "string",
+                "format": "date"
+              },
+              "horizonDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3650
+              },
+              "minimumCashBuffer": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cashFlows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "date",
+                    "amount"
+                  ],
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "amount": {
+                      "type": "number",
+                      "description": "Signed amount; positive is an inflow, negative is an outflow."
+                    },
+                    "category": {
+                      "type": "string",
+                      "maxLength": 50
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  }
+                }
+              },
+              "workingCapital": {
+                "type": "object",
+                "description": "Optional standard accounting ratios (DSO/DPO/DIO/cash conversion cycle) computed from a balance snapshot and period flow — independent of the cashFlows-based daily projection above.",
+                "required": [
+                  "accountsReceivable",
+                  "accountsPayable",
+                  "periodCreditSales",
+                  "periodCOGS",
+                  "periodDays"
+                ],
+                "properties": {
+                  "accountsReceivable": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "AR balance snapshot, in baseCurrency."
+                  },
+                  "accountsPayable": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "AP balance snapshot, in baseCurrency."
+                  },
+                  "periodCreditSales": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Credit sales over the reference period, in baseCurrency."
+                  },
+                  "periodCOGS": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Cost of goods sold / purchases over the reference period, in baseCurrency."
+                  },
+                  "periodDays": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 3650,
+                    "description": "Length of the reference period in days (e.g. 365 for a trailing year, 90 for a quarter)."
+                  },
+                  "inventory": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Optional inventory balance snapshot — enables days_inventory_outstanding and a full cash conversion cycle."
+                  }
+                }
+              }
+            }
+          },
+          "fxExposure": {
+            "description": "Same shape as the /fx-exposure request body minus baseCurrency; positions is optional (the payment is auto-injected as a new unhedged payable position). fxRates must include the payment currency's rate if it differs from baseCurrency.",
+            "type": "object",
+            "properties": {
+              "positions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "currency",
+                    "type",
+                    "amount"
+                  ],
+                  "properties": {
+                    "currency": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "receivable",
+                        "payable",
+                        "cash"
+                      ]
+                    },
+                    "amount": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "hedged": {
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                }
+              },
+              "fxRates": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "stressShockPct": {
+                "type": "number",
+                "default": 0.1
+              },
+              "totalTreasuryValueBase": {
+                "type": "number"
+              }
+            }
+          },
+          "treasuryRisk": {
+            "type": "object",
+            "required": [
+              "returns",
+              "weights"
+            ],
+            "properties": {
+              "returns": {
+                "type": "object",
+                "description": "Per-period historical return series by symbol. All series must be the same length (≥2 observations).",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "weights": {
+                "type": "object",
+                "description": "Portfolio weights by symbol. Must cover exactly the same symbols as `returns` and sum to 1.",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "riskFreeRate": {
+                "type": "number",
+                "description": "Annualized risk-free rate, e.g. 0.04 for 4%.",
+                "default": 0
+              },
+              "periodsPerYear": {
+                "type": "number",
+                "description": "Periods per year in the return series (252 for daily equities, 365 for daily crypto).",
+                "default": 252
+              },
+              "confidenceLevels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "description": "Confidence levels for VaR/Expected Shortfall. Supported: 0.9, 0.95, 0.975, 0.99, 0.995.",
+                "default": [
+                  0.95,
+                  0.99
+                ]
+              },
+              "baseCurrency": {
+                "type": "string",
+                "default": "USD"
+              },
+              "minimumAcceptableReturn": {
+                "type": "number",
+                "description": "Per-period MAR used for downside deviation / Sortino ratio.",
+                "default": 0
+              },
+              "benchmarkReturns": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "description": "Optional per-period benchmark series (same length as each `returns` series) to compute beta and correlation."
+              },
+              "currencyExposure": {
+                "type": "object",
+                "description": "Optional weight distribution by currency, for concentration analysis.",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "geographyExposure": {
+                "type": "object",
+                "description": "Optional weight distribution by geography, for concentration analysis.",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "sectorExposure": {
+                "type": "object",
+                "description": "Optional weight distribution by sector, for concentration analysis.",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "stressScenarios": {
+                "type": "array",
+                "description": "Optional stress scenarios. Shocks on the listed symbols propagate to unshocked symbols via covariance-based beta mapping (correlated impact), alongside the direct-only impact.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "shocks": {
+                      "type": "object",
+                      "description": "Fractional shock per symbol, e.g. -0.3 for a 30% drop.",
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "baseCurrency": "USD",
+        "payment": {
+          "amount": 750000,
+          "currency": "EUR",
+          "date": "2026-09-14"
+        },
+        "liquidity": {
+          "openingCash": 5000000,
+          "startDate": "2026-09-14",
+          "horizonDays": 30,
+          "minimumCashBuffer": 1000000
+        },
+        "fxExposure": {
+          "fxRates": {
+            "EUR": 1.08
+          }
+        }
+      }
+    }
+  ]
+}

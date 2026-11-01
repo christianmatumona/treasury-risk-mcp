@@ -1,0 +1,47 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.christianmatumona/treasury-risk-mcp",
+  "title": "Treasury Risk Analyzer",
+  "description": "Treasury risk, FX exposure, liquidity & payment decisions for AI CFO agents. Pay per call in USDC.",
+  "websiteUrl": "https://portfolio-risk-analyzer-g9ao.onrender.com",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "treasury-risk-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "X402_PRIVATE_KEY",
+          "description": "Private key of a dedicated Base wallet holding a few USDC, used to sign per-call x402 payments. Without it, paid tools only validate input and quote the price.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "MAX_PAYMENT_USD",
+          "description": "Hard per-call spending cap in USD (default 2.00). Tools priced above it are refused before signing.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "2.00"
+        },
+        {
+          "name": "TREASURY_API_URL",
+          "description": "Override the service base URL (default: public production deployment).",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/christianmatumona/treasury-risk-mcp",
+    "source": "github"
+  }
+}

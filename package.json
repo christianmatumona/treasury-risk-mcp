@@ -1,0 +1,50 @@
+{
+  "name": "treasury-risk-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for the Treasury Risk Analyzer: deterministic treasury risk, FX exposure, liquidity forecast and payment-decision tools for AI Treasury/CFO agents, paid per call in USDC on Base via x402.",
+  "type": "module",
+  "bin": {
+    "treasury-risk-mcp": "index.js"
+  },
+  "files": [
+    "index.js",
+    "payment.js",
+    "schemas.json",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "x402",
+    "usdc",
+    "treasury",
+    "fx",
+    "liquidity",
+    "cfo",
+    "ai-agents",
+    "base"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@x402/core": "^2.29.0",
+    "@x402/evm": "^2.29.0",
+    "@x402/fetch": "^2.29.0",
+    "viem": "^2.57.13"
+  },
+  "mcpName": "io.github.christianmatumona/treasury-risk-mcp",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christianmatumona/treasury-risk-mcp.git"
+  },
+  "homepage": "https://github.com/christianmatumona/treasury-risk-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/christianmatumona/treasury-risk-mcp/issues"
+  }
+}
