@@ -27,7 +27,16 @@ const pkg = JSON.parse(fs.readFileSync(path.join(here, 'package.json'), 'utf-8')
 const { tools: PAID_TOOLS } = JSON.parse(fs.readFileSync(path.join(here, 'schemas.json'), 'utf-8'));
 
 const API_URL = (process.env.TREASURY_API_URL || 'https://portfolio-risk-analyzer-g9ao.onrender.com').replace(/\/$/, '');
-const REQUEST_TIMEOUT_MS = 90_000; // generous: the host can cold-start
+// Total budget per tool call (including the 402 → pay → retry round trip). Kept under the 60 s
+// tool-call timeout most MCP clients apply, so the agent gets a structured error instead of a
+// client-side timeout.
+const REQUEST_TIMEOUT_MS = 50_000;
+
+const unreachable = (err) => ({
+  status: 'service_unreachable',
+  charged: false,
+  message: `Could not reach ${API_URL}: ${err.name === 'TimeoutError' ? `no response within ${REQUEST_TIMEOUT_MS / 1000}s` : err.message}. The host may be starting up — retry in about a minute.`,
+});
 
 export function buildServer({ env = process.env, fetchImpl = fetch } = {}) {
   const maxPaymentUsd = parseUsd(env.MAX_PAYMENT_USD ?? '2.00');
@@ -84,13 +93,21 @@ export function buildServer({ env = process.env, fetchImpl = fetch } = {}) {
 
     if (!payer.enabled) {
       // Free pre-check: the service validates input before asking for payment.
-      const res = await callApi(tool.route, args, { pay: false });
+      let res;
+      try {
+        res = await callApi(tool.route, args, { pay: false });
+      } catch (err) {
+        return fail(unreachable(err));
+      }
       if (res.status === 400) return fail({ status: 'invalid_input', charged: false, details: await readJson(res) });
       return fail({
         status: 'payment_not_configured',
         charged: false,
         price_usd: tool.price_usd,
-        input_valid: res.status === 402,
+        // 402 means the service validated the input and asked for payment; anything else
+        // (5xx, 404…) means it could not check, so validity is unknown rather than false.
+        input_valid: res.status === 402 ? true : 'unknown',
+        ...(res.status !== 402 && { http_status: res.status }),
         message: 'This MCP server has no wallet configured. Set X402_PRIVATE_KEY (a Base wallet holding USDC) in the MCP server environment to enable paid calls.',
       });
     }
@@ -162,6 +179,9 @@ export function buildServer({ env = process.env, fetchImpl = fetch } = {}) {
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const { server, payer, maxPaymentUsd } = buildServer();
   await server.connect(new StdioServerTransport());
+  // Wake the host in the background so the first tool call doesn't pay for its cold start.
+  // Free route, fire-and-forget; failures are irrelevant here.
+  fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) }).then((r) => r.body?.cancel()).catch(() => {});
   // stdout is the MCP channel — log to stderr only.
   console.error(`${pkg.name} ${pkg.version} ready — API ${API_URL}; payments ${payer.enabled ? `enabled from ${payer.address}, cap $${maxPaymentUsd}/call` : 'disabled (no X402_PRIVATE_KEY)'}`);
 }

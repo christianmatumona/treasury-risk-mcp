@@ -1,6 +1,6 @@
 {
   "name": "treasury-risk-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for the Treasury Risk Analyzer: deterministic treasury risk, FX exposure, liquidity forecast and payment-decision tools for AI Treasury/CFO agents, paid per call in USDC on Base via x402.",
   "type": "module",
   "bin": {
@@ -34,6 +34,10 @@
     "@x402/evm": "^2.29.0",
     "@x402/fetch": "^2.29.0",
     "viem": "^2.57.13"
+  },
+  "scripts": {
+    "test": "node test-mcp.mjs",
+    "build:schemas": "node scripts/build-schemas.mjs"
   },
   "mcpName": "io.github.christianmatumona/treasury-risk-mcp",
   "publishConfig": {
