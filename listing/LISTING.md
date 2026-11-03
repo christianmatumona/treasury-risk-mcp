@@ -36,7 +36,7 @@ Treasury Risk Analyzer gives AI CFO, Treasury and AP/AR agents decision-grade fi
 - **Deterministic.** Every figure is calculated, not generated. No LLM touches the numbers. Each response includes its methodology, data-quality flags, warnings and limitations, so another agent can act on it or escalate.
 - **Agent-native output.** Responses are structured JSON with a stable envelope (`risk_classification`, `warnings`, `methodology`, `limitations`). Decisions are machine-actionable: `PAY` / `REVIEW` / `DO_NOT_PAY`.
 - **No account, no API key, no subscription.** Each paid call is settled in USDC on Base via the open x402 protocol, from a wallet the user controls, with a hard per-call spending cap. Invalid input is rejected for free, before any payment is requested.
-- **Try before paying.** Without a wallet configured, paid tools validate your input and quote the price. `get_example_input` returns a valid example for every tool.
+- **Try before paying.** `run_demo` returns the real, full output of any paid tool on fixed sample data. Without a wallet configured, paid tools validate your input and quote the price. `get_example_input` returns a valid example for every tool.
 
 ## Tools
 
@@ -44,6 +44,7 @@ Treasury Risk Analyzer gives AI CFO, Treasury and AP/AR agents decision-grade fi
 |---|---|---|
 | `describe_service` | free | Capabilities, prices, payment configuration |
 | `get_example_input` | free | A valid example input for any paid tool |
+| `run_demo` | free | Runs a paid tool on fixed sample data and returns its real, full output — see exactly what you pay for |
 | `treasury_risk` | $0.10 | Volatility, Sharpe/Sortino/Calmar, VaR & Expected Shortfall, HHI concentration (asset/currency/geography/sector), risk contribution, correlated stress tests with statistical-significance gating |
 | `fx_exposure` | $0.25 | Gross/net exposure by currency, hedged vs unhedged, natural hedges, FX stress scenarios, hedge priority |
 | `liquidity_forecast` | $0.50 | Daily cash projection, minimum cash and its date, buffer breach, HEALTHY/WARNING/CRITICAL, optional DSO/DPO/DIO and cash conversion cycle |

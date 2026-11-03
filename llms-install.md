@@ -24,7 +24,7 @@ Add this entry to the user's MCP settings file (for Cline: `cline_mcp_settings.j
 }
 ```
 
-Do **not** add `X402_PRIVATE_KEY` yourself and do not ask the user to paste a private key into the chat. Without it the server works in free mode: all tools are listed, `describe_service` and `get_example_input` work, and paid tools validate the input and return the price without charging anything.
+Do **not** add `X402_PRIVATE_KEY` yourself and do not ask the user to paste a private key into the chat. Without it the server works in free mode: all tools are listed, `describe_service`, `get_example_input` and `run_demo` work, and paid tools validate the input and return the price without charging anything.
 
 If the first start times out (the first `npx` run downloads dependencies), install globally instead and use the binary:
 
@@ -41,7 +41,9 @@ npm install -g treasury-risk-mcp
 1. Call `describe_service` with no arguments. Expect `service.name` = `"Treasury Risk Analyzer"` and `payment.configured` = `false`.
 2. Call `get_example_input` with `{ "tool": "fx_exposure" }`, then call `fx_exposure` with the returned `example`. Expect `status` = `"payment_not_configured"`, `input_valid` = `true` and `charged` = `false`.
 
-If both succeed, the installation is complete.
+3. Call `run_demo` with no arguments. Expect `demo` = `true` and `result.decision` to be one of `PAY`, `REVIEW`, `DO_NOT_PAY`. This is free and shows the real output of the paid `treasury_decision` tool.
+
+If all three succeed, the installation is complete.
 
 ## 4. Enabling paid calls (the user does this, not the agent)
 

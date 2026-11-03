@@ -4,12 +4,12 @@
   "title": "Treasury Risk Analyzer",
   "description": "Treasury risk, FX exposure, liquidity & payment decisions for AI CFO agents. Pay per call in USDC.",
   "websiteUrl": "https://portfolio-risk-analyzer-g9ao.onrender.com",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "treasury-risk-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

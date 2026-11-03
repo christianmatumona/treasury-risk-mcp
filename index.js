@@ -4,6 +4,7 @@
 // Tools:
 //   describe_service    free  — what the service does, prices, payment status of this server
 //   get_example_input   free  — a valid example request body for any paid tool
+//   run_demo            free  — runs a paid tool on fixed sample data (GET /demo), real full output
 //   treasury_risk       $0.10 — POST /treasury-risk
 //   fx_exposure         $0.25 — POST /fx-exposure
 //   liquidity_forecast  $0.50 — POST /liquidity
@@ -65,6 +66,16 @@ export function buildServer({ env = process.env, fetchImpl = fetch } = {}) {
       },
       annotations: { readOnlyHint: true },
     },
+    {
+      name: 'run_demo',
+      description: 'Free. Runs one of the paid tools on fixed sample data and returns its real, full output, so you can see exactly what the paid tool returns before paying. Default: treasury_decision on a EUR 750,000 supplier invoice ("can we pay it today?"). Does not accept your own data — use the paid tool for that. Limited to about 20 calls per hour.',
+      inputSchema: {
+        type: 'object',
+        properties: { tool: { type: 'string', enum: PAID_TOOLS.map((t) => t.name), default: 'treasury_decision' } },
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true, openWorldHint: true },
+    },
     ...PAID_TOOLS.map((t) => ({
       name: t.name,
       description: `PAID: $${t.price_usd} USDC per call on Base (x402), charged only for valid input. ${t.summary}. ${t.description} All figures are computed deterministically (no LLM). Call get_example_input first if unsure of the shape.`,
@@ -90,6 +101,14 @@ export function buildServer({ env = process.env, fetchImpl = fetch } = {}) {
 
   async function callPaidTool(tool, args) {
     const price = parseUsd(tool.price_usd);
+
+    // Every paid tool has required fields, so empty arguments can never be valid. Answer locally:
+    // the service treats an unpaid empty body as a discovery probe (402), which would otherwise be
+    // misreported here as input_valid: true.
+    if (!args || typeof args !== 'object' || Array.isArray(args) || Object.keys(args).length === 0) {
+      return fail({ status: 'invalid_input', charged: false,
+        details: { message: `${tool.name} requires arguments (required: ${(tool.inputSchema.required || []).join(', ')}). Call get_example_input or run_demo to see a valid input.` } });
+    }
 
     if (!payer.enabled) {
       // Free pre-check: the service validates input before asking for payment.
@@ -164,6 +183,22 @@ export function buildServer({ env = process.env, fetchImpl = fetch } = {}) {
         const tool = byName.get(args.tool);
         if (!tool) return fail({ status: 'unknown_tool', known: [...byName.keys()] });
         return ok({ tool: tool.name, price_usd: tool.price_usd, example: tool.example });
+      }
+      if (name === 'run_demo') {
+        const tool = byName.get(args.tool ?? 'treasury_decision');
+        if (!tool) return fail({ status: 'unknown_tool', known: [...byName.keys()] });
+        let res;
+        try {
+          res = await fetchImpl(`${API_URL}/demo?tool=${encodeURIComponent(tool.route.replace(/^\//, ''))}`, {
+            headers: { 'user-agent': `${pkg.name}/${pkg.version}` }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          });
+        } catch (err) {
+          return fail(unreachable(err));
+        }
+        const data = await readJson(res);
+        if (res.status === 429) return fail({ status: 'demo_rate_limited', charged: false, retry_after_seconds: Number(res.headers.get('retry-after')) || undefined, details: data });
+        if (!res.ok) return fail({ status: 'service_error', http_status: res.status, charged: false, details: data });
+        return ok({ ...data, paid_tool: { name: tool.name, price_usd: tool.price_usd, note: `Call ${tool.name} with your own data in the same shape as "input".` } });
       }
       const tool = byName.get(name);
       if (!tool) return fail({ status: 'unknown_tool', name });

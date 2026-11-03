@@ -10,6 +10,7 @@ Each call is paid in **USDC on Base** via [x402](https://x402.org). There is no 
 |---|---|---|
 | `describe_service` | free | What the service does, its prices, and whether payments are configured |
 | `get_example_input` | free | A valid example input for any paid tool |
+| `run_demo` | free | Runs a paid tool on fixed sample data and returns its real, full output (default: can we pay a EUR 750,000 invoice today?) |
 | `treasury_risk` | $0.10 | Volatility, Sharpe/Sortino/Calmar, VaR/CVaR, HHI concentration, risk contribution, correlated stress tests |
 | `fx_exposure` | $0.25 | Gross/net exposure by currency, natural hedges, FX stress scenarios, hedge priority |
 | `liquidity_forecast` | $0.50 | Daily cash projection, minimum cash and its date, buffer breach, liquidity status, optional DSO/DPO/DIO |
